@@ -311,7 +311,7 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
     private List<MapleRing> crushRings = new ArrayList<>();
     private List<MapleRing> friendshipRings = new ArrayList<>();
     private boolean loggedIn = false;
-    private boolean useCS;  //chaos scroll upon crafting item.
+    private boolean useCS = false;  //chaos scroll upon crafting item.
     private long npcCd;
     private long petLootCd;
     private long lastHpDec = 0;
@@ -394,8 +394,6 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
                 announce(MaplePacketCreator.updatePlayerStats(statup, true, MapleCharacter.this));
             }
         });
-
-        useCS = false;
 
         setStance(0);
         inventory = new MapleInventory[MapleInventoryType.values().length];
@@ -533,25 +531,31 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
         ret.accountid = c.getAccID();
         ret.buddylist = new BuddyList(20);
         ret.maplemount = null;
-        ret.getInventory(MapleInventoryType.EQUIP).setSlotLimit(24);
-        ret.getInventory(MapleInventoryType.USE).setSlotLimit(24);
-        ret.getInventory(MapleInventoryType.SETUP).setSlotLimit(24);
-        ret.getInventory(MapleInventoryType.ETC).setSlotLimit(24);
+
+		MapleInventoryTypes mitLimits = {
+			MapleInventoryType.EQUIP,
+			MapleInventoryType.USE,
+			MapleInventoryType.SETUP,
+			MapleInventoryType.ETC
+		}
+
+		for (MapleInventoryType x: mitLimits)
+        	ret.getInventory(x).setSlotLimit(24);
 
         // Select a keybinding method
         int[] selectedKey;
         int[] selectedType;
         int[] selectedAction;
 
-        if (ServerConstants.USE_CUSTOM_KEYSET) {
-            selectedKey = GameConstants.getCustomKey(true);
-            selectedType = GameConstants.getCustomType(true);
-            selectedAction = GameConstants.getCustomAction(true);
-        } else {
-            selectedKey = GameConstants.getCustomKey(false);
-            selectedType = GameConstants.getCustomType(false);
-            selectedAction = GameConstants.getCustomAction(false);
-        }
+
+
+        boolean uck = ServerConstants.USE_CUSTOM_KEYSET;
+        selectedKey = GameConstants.getCustomKey(uck);
+        selectedType = GameConstants.getCustomType(uck);
+        selectedAction = GameConstants.getCustomAction(uck);
+
+
+
 
         for (int i = 0; i < selectedKey.length; i++) {
             ret.keymap.put(selectedKey[i], new MapleKeyBinding(selectedType[i], selectedAction[i]));
@@ -6866,29 +6870,7 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
     }
 
     public boolean isEquip(int type) {
-        switch (type) {
-            case -1:
-            case -2:
-            case -3:
-            case -4:
-            case -5:
-            case -6:
-            case -7:
-            case -8:
-            case -9:
-            case -10:
-            case -11:
-            case -12:
-            case -13:
-            case -15:
-            case -16:
-            case -17:
-            case -49:
-            case -50:
-                return true;
-
-        }
-        return false;
+        return (type >= -17 && type <= -1) || (type == -49 || type == -50);
     }
 
     public String slot(int type) {
@@ -11458,26 +11440,8 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
         double rate = 1;
         if (!getMap().getRageTotemSpawned()) {
             if (isParty()) {
-                switch (getPartyMembersOnSameMap().size()) {
-                    case 1:
-                        rate *= 1.0;
-                        break;
-                    case 2:
-                        rate *= 1.2;
-                        break;
-                    case 3:
-                        rate *= 1.4;
-                        break;
-                    case 4:
-                        rate *= 1.6;
-                        break;
-                    case 5:
-                        rate *= 1.8;
-                        break;
-                    case 6:
-                        rate *= 2.0;
-                        break;
-                }
+                double mosmSize = getPartyMembersOnSameMap().size();
+                rate *= 1.0 + ((mosmSize - 1) * 0.2);
             }
         }
         if (isRaid()) {
@@ -11495,23 +11459,15 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
     }
 
     public void basicBuff() {
-        SkillFactory.getSkill(3121002).getEffect(SkillFactory.getSkill(3121002).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(2311003).getEffect(SkillFactory.getSkill(2311003).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(1301007).getEffect(SkillFactory.getSkill(1301007).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(2301003).getEffect(SkillFactory.getSkill(2301003).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(4201003).getEffect(SkillFactory.getSkill(4201003).getMaxLevel()).applyTo(this);
+        int[] buffSkillInts = {3121002, 2311003, 1301007, 2301003, 4201003};
+        for (int bfv : buffSkillInts)
+            SkillFactory.getSkill(bfv).getEffect(SkillFactory.getSkill(bfv).getMaxLevel()).applyTo(this);
     }
 
     public void advancedBuff() {
-        SkillFactory.getSkill(3121002).getEffect(SkillFactory.getSkill(3121002).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(2311003).getEffect(SkillFactory.getSkill(2311003).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(1301007).getEffect(SkillFactory.getSkill(1301007).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(2301003).getEffect(SkillFactory.getSkill(2301003).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(2211005).getEffect(SkillFactory.getSkill(2211005).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(2321005).getEffect(SkillFactory.getSkill(2321005).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(4111001).getEffect(SkillFactory.getSkill(4111001).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(4201003).getEffect(SkillFactory.getSkill(4201003).getMaxLevel()).applyTo(this);
-        SkillFactory.getSkill(1121002).getEffect(SkillFactory.getSkill(1121002).getMaxLevel()).applyTo(this);
+        int[] buffSkillInts = {3121002, 2311003, 1301007, 2301003, 4201003, 2211005, 2321005, 4111001, 1121002};
+        for (int bfv : buffSkillInts)
+            SkillFactory.getSkill(bfv).getEffect(SkillFactory.getSkill(bfv).getMaxLevel()).applyTo(this);
     }
 
     public void loadBuffs(MapleCharacter chr) {
