@@ -533,25 +533,31 @@ public class MapleCharacter extends AbstractMapleCharacterObject {
         ret.accountid = c.getAccID();
         ret.buddylist = new BuddyList(20);
         ret.maplemount = null;
-        ret.getInventory(MapleInventoryType.EQUIP).setSlotLimit(24);
-        ret.getInventory(MapleInventoryType.USE).setSlotLimit(24);
-        ret.getInventory(MapleInventoryType.SETUP).setSlotLimit(24);
-        ret.getInventory(MapleInventoryType.ETC).setSlotLimit(24);
+
+		MapleInventoryTypes mitLimits = {
+			MapleInventoryType.EQUIP,
+			MapleInventoryType.USE,
+			MapleInventoryType.SETUP,
+			MapleInventoryType.ETC
+		}
+
+		for (MapleInventoryType x: mitLimits)
+        	ret.getInventory(x).setSlotLimit(24);
 
         // Select a keybinding method
         int[] selectedKey;
         int[] selectedType;
         int[] selectedAction;
 
-        if (ServerConstants.USE_CUSTOM_KEYSET) {
-            selectedKey = GameConstants.getCustomKey(true);
-            selectedType = GameConstants.getCustomType(true);
-            selectedAction = GameConstants.getCustomAction(true);
-        } else {
-            selectedKey = GameConstants.getCustomKey(false);
-            selectedType = GameConstants.getCustomType(false);
-            selectedAction = GameConstants.getCustomAction(false);
-        }
+
+
+        boolean uck = ServerConstants.USE_CUSTOM_KEYSET;
+        selectedKey = GameConstants.getCustomKey(uck);
+        selectedType = GameConstants.getCustomType(uck);
+        selectedAction = GameConstants.getCustomAction(uck);
+
+
+
 
         for (int i = 0; i < selectedKey.length; i++) {
             ret.keymap.put(selectedKey[i], new MapleKeyBinding(selectedType[i], selectedAction[i]));
